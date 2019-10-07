@@ -27,3 +27,5 @@ nginx_sites:
 nginx_configs: {}
 
 nginx_auth_basic_files: {}
+
+install_rpm_repositories: "true"

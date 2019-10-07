@@ -1,16 +1,18 @@
 ---
+- name: Configure repositories
+  block:
+    - name: "Add epel-release repository (RHEL)"
+      yum:
+        name: https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+        state: "present"
+      when: ansible_distribution == 'RedHat'
 
-- name: "Add epel-release repository (RHEL)"
-  yum:
-    name: https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
-    state: "present"
-  when: ansible_distribution == 'RedHat'
-
-- name: "Add epel-release repository (CentOS)"
-  yum:
-    name: "epel-release"
-    state: "latest"
-  when: ansible_distribution == 'CentOS'
+    - name: "Add epel-release repository (CentOS)"
+      yum:
+        name: "epel-release"
+        state: "latest"
+      when: ansible_distribution == 'CentOS'
+  when: install_rpm_repositories|bool
 
 - name: Install the nginx packages
   yum:
