@@ -74,6 +74,141 @@ nginx_auth_basic_files:
 
 ```
 
+Configuring protection against bots
+===================================
+
+Some ways to limit the bots' request rates:
+
+1) Using the `robots.txt` file. But unfortunately some bots don't follow the
+robots.txt settings.
+
+2) Denying access to bots based on the `user-agent` header. This solution is
+only for bots that are considered unnecessary or harmful.
+
+3) Using nginx to limit requests: https://www.nginx.com/blog/rate-limiting-nginx/
+
+The three options mentioned above can be configured with this ansible role.
+
+The following links contain very interesting examples and settings:
+
+* https://www.freecodecamp.org/news/nginx-rate-limiting-in-a-nutshell-128fe9e0126c/
+
+* https://www.unixteacher.org/blog/blocking-access-by-user-agent-in-nginx/
+
+* https://serverfault.com/questions/549332/how-to-set-robots-txt-globally-in-nginx-for-all-virtual-hosts
+
+* https://www.ryadel.com/en/nginx-request-rate-limit-protect-web-site-http-request-flood-dos-brute-force/
+
+* https://medium.com/@christopherphillips_88739/rate-limiting-in-nginx-5af7511ab3ce
+
+Using a global robots.txt for all sites
+------------------------------------------
+
+It is enabled with:
+
+```
+nginx_use_global_robots_txt: True
+```
+
+By default, it adds the following `robots.txt` to all sites:
+
+```
+"User-agent: *"
+"Crawl-delay: 60"
+```
+
+To use a different `robots.txt` file, please use the `nginx_global_robots_txt`
+list. For instance:
+
+```
+nginx_global_robots_txt:
+  - "User-agent: Googlebot"
+  - "Allow: /"
+  - "Crawl-delay: 60"
+```
+
+Denying access to bots based on `user-agent` header
+------------------------------------------------------
+
+Just enable the following variable:
+
+```
+nginx_use_bots_deny_list: True
+```
+
+It blocks the access of bots whose `user-agent` header matches the
+`nginx_bots_deny_list` list. You can use a custom list of `user-agent` strings
+that will be proccessed by nginx as a regex:
+
+```
+nginx_bots_deny_list:
+  - bot_user_agent_header_1
+  - bot_user_agent_header_2
+  - bot_user_agent_header_3
+```
+
+The default `http-status` output is "403", but you can redefine it with the
+`nginx_bots_deny_list_status` variable.
+
+Using nginx request limit
+----------------------------
+
+This role allows to configure a request limit for bots (based on `user-agent`
+header) and the other connections (the ones that do not match our bot filter). 
+
+To enable bots request limit, set:
+
+```
+nginx_use_bots_request_limit: True
+```
+
+To enable request rate limit on other connections:
+
+```
+nginx_use_default_request_limit: True
+```
+
+Both settings can be activated at the same time or independently.
+
+There are some variables that you can use for fine tuning the request rate limit:
+
+```
+nginx_bots_request_limit_rate: "1r/m"
+nginx_bots_request_limit_burst: 2
+nginx_bots_request_limit_nodelay: "yes"
+nginx_bots_request_limit_shared_memory_zone: "10m"
+nginx_bots_request_limit_use_x_forwarded_for: False
+
+nginx_default_request_limit_rate: "100r/s"
+nginx_default_request_limit_burst: 15
+nginx_default_request_limit_nodelay: "yes"
+nginx_default_request_limit_shared_memory_zone: "50m"
+nginx_default_request_limit_use_x_forwarded_for: False
+
+nginx_request_limit_status: 429
+```
+
+More info at: https://www.nginx.com/blog/rate-limiting-nginx/
+
+Sometimes it is better to apply the rate limit based on `x_forwarded_for`
+header instead of source ip address, for instance when there's a reverse proxy
+as frontend and we are configuring the request rate limit in the backend
+server.
+
+To use the `x_forwarded_for` header, just enable them:
+
+```
+nginx_bots_request_limit_use_x_forwarded_for: True
+nginx_default_request_limit_use_x_forwarded_for: True
+```
+
+The default http status when reaching the rate limit is 429. It can be changed
+in `nginx_request_limit_status` variable:
+
+```
+nginx_request_limit_status: 429
+```
+
 Examples
 ========
 

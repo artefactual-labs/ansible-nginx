@@ -88,6 +88,16 @@
    - Reload nginx
   tags: [configuration,nginx]
 
+- include: "robots-txt.yml"
+  when:
+    - "nginx_use_global_robots_txt|bool"
+  tags: [nginx-global-robots-txt,nginx]
+
+- include: "badbots.yml"
+  when:
+    - "nginx_use_bots_deny_list|bool"
+  tags: [nginx-badbots,nginx]
+
 - name: Check nginx syntax of configuration files
   shell: nginx -t
   register: result

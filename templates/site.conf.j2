@@ -4,5 +4,16 @@ server {
 {% for v in nginx_sites[item] %}
    {% if v != "" %}{{ v.replace(";",";\n      ").replace("{","{\n      ").replace("}","\n   }\n") }}{% if v.find('{') == -1%};{% endif %}{% endif %} 
 {% endfor %}
+{# Don't add robots.txt when the server or virtualenv is a redirection to https #}
+{% if nginx_use_global_robots_txt|bool and not nginx_sites[item]|join is match('.*return\s+30[0-9]\s+https.*') %}
+   location /robots.txt {
+       alias /etc/nginx/robots.txt;
+   }
+{% endif %}
+{# Don't add bots deny list when the server or virtualenv is a redirection to https #}
+{% if nginx_use_bots_deny_list|bool and not nginx_sites[item]|join is match('.*return\s+30[0-9]\s+https.*') %}
+
+   include /etc/nginx/badbots.conf;
+{% endif %}
 
 }

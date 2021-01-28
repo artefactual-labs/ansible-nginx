@@ -1,0 +1,62 @@
+---
+nginx_user: "{% if ansible_os_family == 'RedHat' %}nginx{% elif ansible_os_family == 'Debian' %}www-data{% endif %}"
+nginx_group: "{{ nginx_user }}"
+
+nginx_worker_processes: "{{ ansible_processor_vcpus }}"
+nginx_max_clients: 512
+nginx_worker_rlimit_nofile: 1024
+nginx_log_dir: "/var/log/nginx"
+
+nginx_http_params:
+  - sendfile "on"
+  - tcp_nopush "on"
+  - tcp_nodelay "on"
+  - keepalive_timeout "65"
+  - access_log "{{ nginx_log_dir }}/access.log"
+  - error_log "{{ nginx_log_dir }}/error.log"
+  - server_tokens off
+  - types_hash_max_size 2048
+
+nginx_sites:
+  default:
+     - listen 80
+     - server_name _
+     - root "/usr/share/nginx/html"
+     - index index.html
+
+nginx_configs: {}
+
+nginx_auth_basic_files: {}
+
+install_rpm_repositories: "true"
+
+#
+# Bots and request-limit related variables
+# See README.md file
+#
+
+nginx_use_global_robots_txt: False
+nginx_use_bots_deny_list: False
+nginx_use_bots_request_limit: False
+nginx_use_default_request_limit: False
+
+nginx_bots_deny_list_status: 403
+
+nginx_bots_request_limit_rate: "1r/m"
+nginx_bots_request_limit_burst: 2
+nginx_bots_request_limit_nodelay: "yes"
+nginx_bots_request_limit_shared_memory_zone: "10m"
+nginx_bots_request_limit_use_x_forwarded_for: False
+
+nginx_default_request_limit_rate: "100r/s"
+nginx_default_request_limit_burst: 15
+nginx_default_request_limit_nodelay: "yes"
+nginx_default_request_limit_shared_memory_zone: "50m"
+nginx_default_request_limit_use_x_forwarded_for: False
+
+nginx_request_limit_status: 429
+
+#The following list have been defined in bot-lists.txt files:
+# nginx_bots_request_limit_user_agents_regex
+# nginx_global_robots_txt
+# nginx_bots_deny_list

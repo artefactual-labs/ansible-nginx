@@ -1,0 +1,3 @@
+---
+- name: Create/Update global robots.txt file
+  template: src=robots.txt.j2 dest=/etc/nginx/robots.txt
