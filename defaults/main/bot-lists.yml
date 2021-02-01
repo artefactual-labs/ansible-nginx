@@ -10,7 +10,9 @@ nginx_global_robots_txt:
 #  -  "User-agent: AdsBot-Google"
 
 nginx_bots_deny_list:
-  - baidu
+  - baidu            # https://www.baidu.com/search/robots_english.html
+  - ahrefs           # https://ahrefs.com/robot
+  - yandex         # https://yandex.com/support/webmaster/robot-workings/check-yandex-robots.html
   - ahrefs
   - yandex
   - ezooms
@@ -46,4 +48,3 @@ nginx_bots_request_limit_user_agents_regex:
   - (RegionStuttgartBot|Bytespider|Datanyze|Google-Site-Verification|TrendsmapResolver|tweetedtimes|NTENTbot|Gwene|SimplePie|SearchAtlas|Superfeedr|feedbot|UT-Dorkbot|Amazonbot|SerendeputyBot|Eyeotabot|officestorebot|Neticle\ Crawler|SurdotlyBot|LinkisBot|AwarioSmartBot|AwarioRssBot|RyteBot|FreeWebMonitoring\ SiteChecker)
   - (AspiegelBot|NAVER\ Blog\ Rssbot|zenback\ bot|SentiBot|Domains\ Project\/|Pandalytics|VKRobot|bidswitchbot|tigerbot|NIXStatsbot|Atom\ Feed\ Robot|Curebot|PagePeeker\/|Vigil\/|rssbot\/|startmebot\/|JobboerseBot|seewithkids|NINJA\ bot|Cutbot|BublupBot|BrandONbot|RidderBot|YandexMetrika)
   - (YandexTurbo|YandexImageResizer|YandexVideoParser|Taboolabot|Dubbotbot|FindITAnswersbot|infoobot|Refindbot|BlogTraffic\/\d\.\d+\ Feed-Fetcher|SeobilityBot|Cincraw|Dragonbot|VoluumDSP-content-bot|FreshRSS|BitBot|PetalBot|SemrushBot)
-
