@@ -3,7 +3,7 @@ galaxy_info:
   author: "Artefactual Systems"
   company: "Artefactual Systems"
   license: BSD
-  min_ansible_version: 2.0
+  min_ansible_version: 2.7
   platforms:
    - name: EL
      versions:
