@@ -13,8 +13,6 @@ nginx_bots_deny_list:
   - baidu            # https://www.baidu.com/search/robots_english.html
   - ahrefs           # https://ahrefs.com/robot
   - yandex         # https://yandex.com/support/webmaster/robot-workings/check-yandex-robots.html
-  - ahrefs
-  - yandex
   - ezooms
   - yahoo
   - webmeup-crawler
@@ -27,6 +25,7 @@ nginx_bots_deny_list:
   - semanticscholar
   - aspiegel
   - PetalBot
+  - SeekportBot
 
 nginx_bots_request_limit_user_agents_regex:
   - (Googlebot\/|Googlebot-Mobile|Googlebot-Image|Googlebot-News|Googlebot-Video|AdsBot-Google([^-]|$)|AdsBot-Google-Mobile|Feedfetcher-Google|Mediapartners-Google|Mediapartners\ \(Googlebot\)|APIs-Google|bingbot|Slurp|LinkedInBot|Python-urllib|python-requests|libwww-perl|httpunit|nutch|Go-http-client)
