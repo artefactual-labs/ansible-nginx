@@ -98,6 +98,11 @@
     - "nginx_use_bots_deny_list|bool"
   tags: [nginx-badbots,nginx]
 
+- include: "default-deny-all-site.yml"
+  when:
+    - "nginx_create_default_deny_all_site|bool"
+  tags: [nginx-default-deny-all,nginx]
+
 - name: Check nginx syntax of configuration files
   shell: nginx -t
   register: result

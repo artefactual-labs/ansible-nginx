@@ -56,7 +56,12 @@ nginx_default_request_limit_use_x_forwarded_for: False
 
 nginx_request_limit_status: 429
 
-#The following list have been defined in bot-lists.txt files:
-# nginx_bots_request_limit_user_agents_regex
-# nginx_global_robots_txt
-# nginx_bots_deny_list
+# The following list have been defined in bot-lists.txt files:
+# * nginx_bots_request_limit_user_agents_regex
+# * nginx_global_robots_txt
+# * nginx_bots_deny_list
+
+# Create default site to deny all request without a configured servername
+# Please, don't use when using the wildcard servername:
+#       - "servername _"
+nginx_create_default_deny_all_site: False

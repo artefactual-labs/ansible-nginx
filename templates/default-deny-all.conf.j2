@@ -1,0 +1,19 @@
+#{{ ansible_managed }}
+
+server {
+    listen 80 default_server;
+    listen 443 ssl http2 default_server;
+    listen [::]:80 default_server;
+    listen [::]:443 ssl http2 default_server;
+
+    server_name _;
+
+    ssl_ciphers aNULL;
+    ssl_session_tickets off;
+    ssl_certificate /etc/nginx/ssl-certs/default-deny-all.crt;
+    ssl_certificate_key /etc/nginx/ssl-certs/default-deny-all-key.crt;
+
+    return 403;
+    access_log off;
+    error_log /dev/null;
+}

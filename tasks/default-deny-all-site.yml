@@ -1,0 +1,21 @@
+---
+
+- name: Create self-signed certificates dir for the default deny-all-site file
+  file: path=/etc/nginx/ssl-certs state=directory 
+
+- name: Create self-signed certificates for the default deny-all-site file
+  shell: >
+    openssl req -x509 -newkey rsa:4096 
+    -subj '/C=CA/ST=British Columbia/L=Vancouver/O=Artefactual Systems Inc' 
+    -nodes -out /etc/nginx/ssl-certs/default-deny-all.crt 
+    -keyout /etc/nginx/ssl-certs/default-deny-all-key.crt -days 24855
+
+- name: Create/Update the default deny-all-site file
+  template: src=default-deny-all.conf.j2 dest=/etc/nginx/sites-available/default-deny-all-site.conf
+  notify:
+   - Reload nginx
+
+- name: Create links for sites-enabled
+  file: state=link src=/etc/nginx/sites-available/default-deny-all-site.conf dest=/etc/nginx/sites-enabled/default-deny-all-site.conf
+  notify:
+   - Reload nginx
