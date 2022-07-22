@@ -26,6 +26,7 @@ nginx_bots_deny_list:
   - aspiegel
   - PetalBot
   - SeekportBot
+  - Honolulu-bot
 
 nginx_bots_request_limit_user_agents_regex:
   - (Googlebot\/|Googlebot-Mobile|Googlebot-Image|Googlebot-News|Googlebot-Video|AdsBot-Google([^-]|$)|AdsBot-Google-Mobile|Feedfetcher-Google|Mediapartners-Google|Mediapartners\ \(Googlebot\)|APIs-Google|bingbot|Slurp|LinkedInBot|Python-urllib|python-requests|libwww-perl|httpunit|nutch|Go-http-client)
