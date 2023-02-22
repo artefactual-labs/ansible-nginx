@@ -21,6 +21,16 @@
   when: ansible_os_family == 'RedHat'
   tags: [packages,nginx]
 
+# See: https://bugzilla.redhat.com/show_bug.cgi?id=1984713
+- name: Install openssl11-libs package (RHEL7)
+  yum:
+    name: "openssl11-libs"
+    state: "present"
+  when:
+    - ansible_distribution == 'RedHat'
+    - ansible_distribution_major_version is version_compare('7','==')
+  tags: [packages,nginx]
+
 - name: Install the nginx packages
   apt:
     name: "{{ ubuntu_pkg }}"
