@@ -24,6 +24,32 @@ nginx_sites:
      - root "/usr/share/nginx/html"
      - index index.html
 
+# default-deny        
+# to catch unhandled vhosts
+nginx_use_default_deny: False
+
+default_deny_sites:
+  default_deny:
+     - listen 80 default_server
+     - listen [::]:80 default_server
+     - listen 443 ssl http2 default_server
+     - listen [::]:443 ssl http2 default_server
+     - server_name _
+     - ssl_ciphers aNULL
+     - ssl_session_tickets off
+     - ssl_certificate /etc/nginx/ssl-certs/default_deny.crt
+     - ssl_certificate_key /etc/nginx/ssl-certs/default_deny.pem
+     - return 444
+     - access_log off
+     - error_log /dev/null  
+crypto_package: >-
+  {%- if ansible_distribution == "Rocky" and ansible_distribution_major_version == "8" 
+      or ansible_distribution == "Ubuntu" and ansible_distribution_version == "22.04" -%}
+    python3-cryptography
+  {%- else -%}
+    python-cryptography
+  {%- endif -%}
+
 nginx_configs: {}
 
 nginx_auth_basic_files: {}

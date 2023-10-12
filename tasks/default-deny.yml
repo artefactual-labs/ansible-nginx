@@ -1,0 +1,40 @@
+---
+- name: "Install Python Cryptography package"  
+  package:
+    name: "{{ crypto_package }}"
+    state: present
+
+- name: Create self-signed certificates dir for the default deny-all-site file
+  file: path=/etc/nginx/ssl-certs state=directory
+
+- name: Generate OpenSSL private key
+  openssl_privatekey:
+    path: /etc/nginx/ssl-certs/default_deny.pem
+
+- name: Generate an OpenSSL Certificate Signing Request with Subject information
+  openssl_csr:
+    path: /etc/nginx/ssl-certs/default_deny.csr
+    privatekey_path: /etc/nginx/ssl-certs/default_deny.pem
+    country_name: CA
+    state_or_province_name: British Columbia
+    locality_name: Vancouver
+    organization_name: Artefactual Systems Inc
+    common_name: default.artefactual.com
+
+- name: Generate a Self Signed OpenSSL certificate
+  openssl_certificate:
+    path: /etc/nginx/ssl-certs/default_deny.crt
+    privatekey_path: /etc/nginx/ssl-certs/default_deny.pem
+    csr_path: /etc/nginx/ssl-certs/default_deny.csr
+    provider: selfsigned
+
+- name: Update the default-deny site
+  template: src=default_deny_site.conf.j2 dest=/etc/nginx/sites-available/default-deny
+  with_items: "{{ default_deny_sites.keys() | list }}"
+  notify:
+   - Reload nginx
+
+- name: Create link for default-deny site
+  file: state=link src=/etc/nginx/sites-available/default-deny dest=/etc/nginx/sites-enabled/default-deny
+  notify:
+   - Reload nginx

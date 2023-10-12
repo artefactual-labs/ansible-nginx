@@ -110,6 +110,11 @@
     - "nginx_use_bots_deny_list|bool"
   tags: [nginx-badbots,nginx]
 
+- include_tasks: "default-deny.yml"
+  when: 
+    - "nginx_use_default_deny | bool"
+  tags: [configuration,nginx]
+
 - name: Check nginx syntax of configuration files
   shell: nginx -t
   register: result
