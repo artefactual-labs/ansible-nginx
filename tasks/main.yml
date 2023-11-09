@@ -3,7 +3,7 @@
   block:
     - name: "Add epel-release repository (RHEL)"
       yum:
-        name: https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+        name: "https://dl.fedoraproject.org/pub/epel/epel-release-latest-{{ ansible_distribution_major_version|int }}.noarch.rpm"
         state: "present"
       when: ansible_distribution == 'RedHat'
 
@@ -11,7 +11,9 @@
       yum:
         name: "epel-release"
         state: "latest"
-      when: ansible_distribution in ['CentOS', 'Rocky']
+      when:
+        - ansible_distribution not in ['RedHat']
+        - ansible_os_family in ['RedHat','Rocky']
   when: install_rpm_repositories|bool
 
 - name: Install the nginx packages
@@ -98,12 +100,12 @@
    - Reload nginx
   tags: [configuration,nginx]
 
-- include: "robots-txt.yml"
+- include_tasks: "robots-txt.yml"
   when:
     - "nginx_use_global_robots_txt|bool"
   tags: [nginx-global-robots-txt,nginx]
 
-- include: "badbots.yml"
+- include_tasks: "badbots.yml"
   when:
     - "nginx_use_bots_deny_list|bool"
   tags: [nginx-badbots,nginx]
