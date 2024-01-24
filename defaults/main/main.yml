@@ -75,7 +75,7 @@ nginx_bots_request_limit_shared_memory_zone: "10m"
 nginx_bots_request_limit_use_x_forwarded_for: False
 
 nginx_default_request_limit_rate: "100r/s"
-nginx_default_request_limit_burst: 15
+nginx_default_request_limit_burst: 100
 nginx_default_request_limit_nodelay: "yes"
 nginx_default_request_limit_shared_memory_zone: "50m"
 nginx_default_request_limit_use_x_forwarded_for: False
