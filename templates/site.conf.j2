@@ -1,19 +1,33 @@
-#{{ ansible_managed }}
-server {
+{{ ansible_managed | comment }}                                                                                        
 
+server { 
+{#- indent v by 2, including the first one #}
+{%- filter indent(2, true) %} 
 {% for v in nginx_sites[item] %}
-   {% if v != "" %}{{ v.replace(";",";\n      ").replace("{","{\n      ").replace("}","\n   }\n") }}{% if v.find('{') == -1%};{% endif %}{% endif %} 
+  {%- if v != "" %} {#- if not an empty string #}
+    {%- if v| regex_search('^\s*add_header') %} {#- if v has add_header #}
+      {{- v ~ ";\n" }} {#- print v and add ';\n' #}
+    {%- elif v.find('{') == -1 %} {#- if v has no '{' #}
+      {{- v | regex_replace(";\\s*",";\n") }} {#- replace any ';' and trailing whitespaces with ';\n' #}
+      {{- ";\n" }} {#- add ';' to end #}
+    {%- else %} {#- format location blocks #}
+      {{- "\n" ~ v | regex_replace(";\\s*",";\n  ")
+                   | regex_replace("}\\s*","}\n")
+                   | replace("{","{\n ") }}
+    {%- endif %}
+  {%- endif %}
 {% endfor %}
-{# Don't add robots.txt when the server or virtualenv is a redirection to https #}
-{% if nginx_use_global_robots_txt|bool and not nginx_sites[item]|join is match('.*return\s+30[0-9]\s+https.*') %}
-   location /robots.txt {
-       alias /etc/nginx/robots.txt;
-   }
+
+{#- Don't add robots.txt when the server or virtualenv is a redirection to https #}
+{%- if nginx_use_global_robots_txt|bool and not nginx_sites[item]|join is match('.*return\s+30[0-9]\s+https.*') %}                    
+location /robots.txt {
+  alias /etc/nginx/robots.txt;
+}   
 {% endif %}
+{% endfilter %}
+
 {# Don't add bots deny list when the server or virtualenv is a redirection to https #}
 {% if nginx_use_bots_deny_list|bool and not nginx_sites[item]|join is match('.*return\s+30[0-9]\s+https.*') %}
-
-   include /etc/nginx/badbots.conf;
+  include /etc/nginx/badbots.conf;
 {% endif %}
-
 }
