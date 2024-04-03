@@ -35,7 +35,8 @@ default_deny_sites:
      - listen 443 ssl http2 default_server
      - listen [::]:443 ssl http2 default_server
      - server_name _
-     - ssl_ciphers aNULL
+     - ssl_protocols TLSv1.3
+     - ssl_ciphers 'ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305'
      - ssl_session_tickets off
      - ssl_certificate /etc/nginx/ssl-certs/default_deny.crt
      - ssl_certificate_key /etc/nginx/ssl-certs/default_deny.pem
