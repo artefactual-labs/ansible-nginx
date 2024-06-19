@@ -12,6 +12,7 @@ nginx_global_robots_txt:
 nginx_bots_deny_list:
   - ahrefs           # https://ahrefs.com/robot
   - AhrefsBot
+  - aiohttp
   - Anthropic-ai
   - aspiegel
   - baidu            # https://www.baidu.com/search/robots_english.html
