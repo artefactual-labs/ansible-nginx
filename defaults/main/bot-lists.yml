@@ -14,6 +14,7 @@ nginx_bots_deny_list:
   - AhrefsBot
   - aiohttp
   - Anthropic-ai
+  - Applebot
   - aspiegel
   - baidu            # https://www.baidu.com/search/robots_english.html
   - Barkrowler
