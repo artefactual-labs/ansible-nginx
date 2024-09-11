@@ -83,6 +83,17 @@ nginx_default_request_limit_use_x_forwarded_for: False
 
 nginx_request_limit_status: 429
 
+# Allowed networks/ip addresses, using default rate-limit (it doesn't matter the User-Agent used)
+nginx_bots_allowed_networks: []
+#nginx_bots_allowed_networks:
+#  - "127.0.0.0/8"
+#  - "1.1.1.1"
+
+# Allowed user agents regex to use default rate-limit
+nginx_bots_request_limit_user_agents_regex_allowed: []
+#nginx_bots_request_limit_user_agents_regex_allowed:
+#  - "Googlebot\/
+
 #The following list have been defined in bot-lists.txt files:
 # nginx_bots_request_limit_user_agents_regex
 # nginx_global_robots_txt

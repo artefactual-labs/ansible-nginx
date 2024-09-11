@@ -150,6 +150,21 @@ nginx_bots_deny_list:
 The default `http-status` output is "403", but you can redefine it with the
 `nginx_bots_deny_list_status` variable.
 
+You can add exceptions to IP addresses or networks. In case you want to apply default rate limit to `1.2.3.0/24` network and "4.5.6.7" IP address regardless the User-Agent value:
+
+```
+nginx_bots_allowed_networks:
+  - "1.2.3.0/24"
+  - "4.5.6.7"
+```
+
+And about exceptions to User-Agent list, you can set default rate limit for `Googlebot` regardless the values in `nginx_bots_request_limit_user_agents_regex`: 
+
+```
+nginx_bots_request_limit_user_agents_regex_allowed:
+  - "Googlebot\/"
+```
+
 Using nginx request limit
 ----------------------------
 

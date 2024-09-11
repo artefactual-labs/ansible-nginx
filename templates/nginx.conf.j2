@@ -11,15 +11,28 @@ events {
 
 
 http {
-
         include /etc/nginx/mime.types;
         default_type application/octet-stream;
 {% for v in nginx_http_params %}
         {{ v }};
 {% endfor %}
 {% if nginx_use_bots_request_limit|bool %}
+        # geo uses $real_ip to compare, it should work when using an additional reverse proxy
+        geo $whitelist_ip {
+        default 0;
+        # Allowed IP/networks mapping to skip User-Agent based bot detection and apply default rate-limit
+{%      for v in nginx_bots_allowed_networks %}
+        {{ v }} 1;
+{%      endfor %}
+        # End allowed IP/networks mapping
+        }
         map $http_user_agent $isbot_ua {
         default 0;
+        # Allowed User-Agents mapped with 0 (good bots) -> Apply default rate-limit
+{%      for v in nginx_bots_request_limit_user_agents_regex_allowed %}
+        ~*{{ v }} 0;
+{%      endfor %}
+        # End akkiwd User-Agents
         # Regex from: https://observablehq.com/@hugodf/crawler-regex
         # Needs to escape black spaces and split in several regex, it can help:
         # Copy regex to file and run: cat regex  | sed 's/\ /\\\ /g' | sed -e 's/.\{300\}/&\n\n/g' > regex_fixed
@@ -28,14 +41,17 @@ http {
         ~*{{ v }} 1;
 {%      endfor %}
         }
-        map $isbot_ua $limit_bot {
-	   0       "";
+        # Mapping for rate-limit. When it is an allowed IP/Nwtwork it always set as "".
+        map "$whitelist_ip:$isbot_ua" $limit_bot {
+	   "1:0"       "";
+           "1:1"       "";
            # Use $http_x_forwarded_for instead of $binary_remote_addr when using reverse proxy
 {%      if nginx_bots_request_limit_use_x_forwarded_for|bool %}
-	   1       $http_x_forwarded_for;
+	   "0:1"       $http_x_forwarded_for;
 {%      else %}
-	   1       $binary_remote_addr;
+	   "0:1"       $binary_remote_addr;
 {%       endif %}
+           "0:0"       "";
         }
 	limit_req_zone $limit_bot zone=bots:{{ nginx_bots_request_limit_shared_memory_zone }} rate={{ nginx_bots_request_limit_rate }};
 	limit_req zone=bots burst={{ nginx_bots_request_limit_burst }} nodelay;
