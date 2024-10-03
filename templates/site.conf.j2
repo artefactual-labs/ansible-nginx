@@ -20,7 +20,7 @@ server {
 
 {#- Don't add robots.txt when the server or virtualenv is a redirection to https #}
 {%- if nginx_use_global_robots_txt|bool and not nginx_sites[item]|join is match('.*return\s+30[0-9]\s+https.*') %}                    
-location /robots.txt {
+location = /robots.txt {
   alias /etc/nginx/robots.txt;
 }   
 {% endif %}
