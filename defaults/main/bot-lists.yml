@@ -45,6 +45,7 @@ nginx_bots_deny_list:
   - IonCrawl
   - ISSCyberRiskCrawler
   - Java/11.0
+  - meta-externalagent
   - MJ12Bot
   - Mozlila
   - my-tiny-bot
