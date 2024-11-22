@@ -13,6 +13,7 @@ nginx_bots_deny_list:
   - ahrefs           # https://ahrefs.com/robot
   - AhrefsBot
   - aiohttp
+  - Amazonbot
   - Anthropic-ai
   - Applebot
   - aspiegel
