@@ -17,6 +17,7 @@ nginx_bots_deny_list:
   - Anthropic-ai
   - Applebot
   - aspiegel
+  - awario
   - baidu            # https://www.baidu.com/search/robots_english.html
   - Barkrowler
   - BLEXBot
