@@ -1,4 +1,10 @@
 #{{ ansible_managed }}
+
+{% if nginx_use_geoip_request_limit|bool and ansible_os_family == 'Debian' %}
+# Ensure ngx_http_geoip2_module.so is loaded
+load_module modules/ngx_http_geoip2_module.so;
+
+{% endif %}
 user              {{ nginx_user }};
 
 worker_processes  {{ nginx_worker_processes }};
@@ -17,6 +23,42 @@ http {
 {% for v in nginx_http_params %}
         {{ v }};
 {% endfor %}
+
+{% if nginx_use_geoip_request_limit|bool and ansible_os_family == 'Debian' %}
+    # GeoIP2 Configuration
+        geoip2 /etc/nginx/geoip/GeoLite2-ASN.mmdb {
+            auto_reload 60m;
+            $geoip2_data_asn autonomous_system_number;
+            $geoip2_data_asn_org autonomous_system_organization;
+        }
+
+        geoip2 /etc/nginx/geoip/GeoLite2-City.mmdb {
+            auto_reload 60m;
+            $geoip2_data_country country iso_code;
+        }
+
+        # Define conditions for rate limiting
+        map $geoip2_data_country $limit_country {
+            default "";
+{%      for v in nginx_geoip_country_list %}
+            {{ v }} 1;
+{%      endfor %}
+        }
+
+        map $geoip2_data_asn $limit_asn {
+            default "";
+{%      for v in nginx_geoip_asn_list %}
+            {{ v }} 1;
+{%      endfor %}
+        }
+
+        # Combine conditions for rate limiting
+        map "$limit_country$limit_asn" $geoip_rate_limit {
+            default "";
+            ~.+ "geoip_zone"; # Static key for global rate limiting
+        }
+{% endif %}
+
 {% if nginx_use_bots_request_limit|bool %}
         map $http_user_agent $isbot_ua {
         default 0;
@@ -37,6 +79,10 @@ http {
 	   1       $binary_remote_addr;
 {%       endif %}
         }
+{%      if nginx_use_geoip_request_limit|bool and ansible_os_family == 'Debian' %}
+        limit_req_zone $geoip_rate_limit zone=geoip_zone:{{ nginx_geoip_request_limit_rate_shared_memory_zone }} rate={{ nginx_geoip_request_limit_rate  }};
+        limit_req zone=geoip_zone burst={{ nginx_geoip_request_limit_burst }} nodelay;
+{%      endif %}
 	limit_req_zone $limit_bot zone=bots:{{ nginx_bots_request_limit_shared_memory_zone }} rate={{ nginx_bots_request_limit_rate }};
 	limit_req zone=bots burst={{ nginx_bots_request_limit_burst }} nodelay;
 {% endif %}

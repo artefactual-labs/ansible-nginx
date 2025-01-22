@@ -13,3 +13,11 @@ ubuntu_focal_pkg:
   - python3-selinux
   - python-is-python3
   - nginx
+
+geoip_extra_pkg: >-
+  {{
+    (
+      "nginx-all-modules" if ansible_os_family == 'RedHat' else
+      "nginx-extras"
+    ) | trim
+  }}
