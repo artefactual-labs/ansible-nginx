@@ -1,0 +1,11 @@
+---
+
+nginx_geoip_country_list: []
+#  - CN #China
+#  - RU # Rusia
+# See iso country codes: https://en.wikipedia.org/wiki/ISO_3166-2
+
+nginx_geoip_asn_list: []
+#  - 4134 # Chinanet
+#  - 4837 # CHINA UNICOM China169 Backbone
+#  - 9808 # China Mobile Communications

@@ -120,6 +120,12 @@
     - "nginx_use_default_deny | bool"
   tags: [configuration,nginx]
 
+- import_tasks: "geoip.yml"
+  when:
+    - "nginx_use_geoip_request_limit|bool"
+    - ansible_os_family == 'Debian'
+  tags: [nginx-geoip,nginx]
+
 - name: Check nginx syntax of configuration files
   shell: nginx -t
   register: result
