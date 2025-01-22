@@ -83,7 +83,18 @@ nginx_default_request_limit_use_x_forwarded_for: False
 
 nginx_request_limit_status: 429
 
-#The following list have been defined in bot-lists.txt files:
+#The following lists have been defined in bot-lists.yml file:
 # nginx_bots_request_limit_user_agents_regex
 # nginx_global_robots_txt
 # nginx_bots_deny_list
+
+#Note nginx_use_geoip_request_limit requires nginx_use_bots_request_limit=True
+#It only can be used in frontend servers because under a proxy it is going to take geoip from proxy
+nginx_use_geoip_request_limit: False
+nginx_geoip_request_limit_rate: "1r/m"
+nginx_geoip_request_limit_rate_shared_memory_zone: "10m"
+nginx_geoip_request_limit_burst: 1
+
+#The following list have been defined in geoip-lists.yml files:
+# nginx_geoip_country_list
+# nginx_geoip_asn_list
