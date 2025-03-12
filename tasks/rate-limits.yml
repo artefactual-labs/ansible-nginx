@@ -1,0 +1,17 @@
+---
+- name: Create /etc/nginx/rate-limits dir
+  file: 
+    path: "/etc/nginx/rate-limits" 
+    state: "directory"
+    owner: "root"
+    group: "{{nginx_group}}"
+    mode: 0755
+
+
+- name: Create rate-limits.conf file
+  template:
+    src: "rate_limits.conf.j2"
+    dest: "/etc/nginx/rate-limits/rate-limits.conf"
+  notify:
+   - Reload nginx
+ 
