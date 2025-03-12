@@ -7,6 +7,13 @@
     group: "{{nginx_group}}"
     mode: 0755
 
+- name: Create /etc/nginx/rate-limits/exceptions dir
+  file:
+    path: "/etc/nginx/rate-limits/exceptions"
+    state: "directory"
+    owner: "root"
+    group: "{{nginx_group}}"
+    mode: 0755
 
 - name: Create rate-limits.conf file
   template:
@@ -14,4 +21,37 @@
     dest: "/etc/nginx/rate-limits/rate-limits.conf"
   notify:
    - Reload nginx
- 
+
+- name: Create geoip rate exceptions - based on country/host
+  template:
+    src: "rate-limit-exceptions/geoip_country_host_exception.conf.j2"
+    dest: "/etc/nginx/rate-limits/exceptions/geoip_country_host_exception_{{ item.id }}.conf"
+  loop: "{{ nginx_geoip_request_limit_country_host_exception_list }}"
+  when:
+    - "nginx_use_geoip_request_limit|bool"
+    - "nginx_geoip_request_limit_country_host_exception_list|length > 0"
+  notify:
+   - Reload nginx
+
+- name: Create geoip rate exceptions - based on asn/host
+  template:
+    src: "rate-limit-exceptions/geoip_asn_host_exception.conf.j2"
+    dest: "/etc/nginx/rate-limits/exceptions/geoip_asn_host_exception_{{ item.id }}.conf"
+  loop: "{{ nginx_geoip_request_limit_asn_host_exception_list }}"
+  when:
+    - "nginx_use_geoip_request_limit|bool"
+    - "nginx_geoip_request_limit_asn_host_exception_list|length > 0"
+  notify:
+   - Reload nginx
+
+
+- name: Create bots rate exceptions - based on User-Agent/host
+  template:
+    src: "rate-limit-exceptions/bots_user_agent_host_exception.conf.j2"
+    dest: "/etc/nginx/rate-limits/exceptions/bots_user_agent_host_exception_{{ item.id }}.conf"
+  loop: "{{ nginx_bots_request_limit_user_agent_host_exception_list }}"
+  when:
+    - "nginx_use_bots_request_limit|bool"
+    - "nginx_bots_request_limit_user_agent_host_exception_list|length > 0"
+  notify:
+   - Reload nginx

@@ -22,15 +22,17 @@ geoip2 /etc/nginx/geoip/GeoLite2-City.mmdb {
 
 
 # Define conditions for rate limiting
-map $geoip2_data_country $limit_country {
+map $geoip2_data_country$host $limit_country {
   default "";
+  include /etc/nginx/rate-limits/exceptions/geoip_country_host_exception_*.conf; # Load per-site country exceptions
 {%   for v in nginx_geoip_country_list %}
   {{ v }} 1;
 {%   endfor %}
 }
 
-map $geoip2_data_asn $limit_asn {
+map $geoip2_data_asn$host $limit_asn {
   default "";
+  include /etc/nginx/rate-limits/exceptions/geoip_asn_host_exception_*.conf; # Load per-site ans exceptions
 {%   for v in nginx_geoip_asn_list %}
   {{ v }} 1;
 {%   endfor %}
@@ -59,8 +61,9 @@ limit_req zone=geoip_zone burst={{ nginx_geoip_request_limit_burst }} nodelay;
 #
 
 {% if nginx_use_bots_request_limit|bool %}
-map $http_user_agent $isbot_ua {
-  default 0;
+map "$http_user_agent$host" $isbot_ua {
+  default "";
+  include /etc/nginx/rate-limits/exceptions/bots_user_agent_host_exception_*.conf; # Load per-site bot exceptions
   # Regex from: https://observablehq.com/@hugodf/crawler-regex
   # Needs to escape black spaces and split in several regex, it can help:
   # Copy regex to file and run: cat regex  | sed 's/\ /\\\ /g' | sed -e 's/.\{300\}/&\n\n/g' > regex_fixed
@@ -74,9 +77,9 @@ map $isbot_ua $limit_bot {
   0       "";
   # Use $http_x_forwarded_for instead of $binary_remote_addr when using reverse proxy
 {%  if nginx_bots_request_limit_use_x_forwarded_for|bool %}
-  1       $http_x_forwarded_for;
+  ~.+     $http_x_forwarded_for;
 {%  else %}
-  1       $binary_remote_addr;
+  ~.+     $binary_remote_addr;
 {%  endif %}
 }
 

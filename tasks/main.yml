@@ -123,7 +123,7 @@
 - import_tasks: "rate-limits.yml"
   when:
     - "nginx_use_geoip_request_limit|bool or nginx_use_bots_request_limit|bool or nginx_use_default_request_limit|bool"
-  tags: [configuration,nginx,nginx-geoip]
+  tags: [configuration,nginx,nginx-geoip,rate-limit]
 
 - import_tasks: "geoip.yml"
   when:

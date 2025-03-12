@@ -1,0 +1,9 @@
+# Auto-generated exception file for {{ item.id }}
+
+{% for exception in item.exceptions %}
+{%   if exception.enable|bool %}
+{{ exception.asn }}{{ exception.host }} "";
+{%   else %}
+{{ exception.asn }}{{ exception.host }} 1;
+{%   endif %}
+{% endfor %}
