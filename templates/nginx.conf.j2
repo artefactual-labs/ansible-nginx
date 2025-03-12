@@ -1,10 +1,10 @@
 #{{ ansible_managed }}
 
 {% if nginx_use_geoip_request_limit|bool and ansible_os_family == 'Debian' %}
-# Ensure ngx_http_geoip2_module.so is loaded
+# Ensure ngx_http_geoip2_module.so is loaded. It is a dynamic module, so it must be included here
 load_module modules/ngx_http_geoip2_module.so;
-
 {% endif %}
+
 user              {{ nginx_user }};
 
 worker_processes  {{ nginx_worker_processes }};
@@ -24,79 +24,11 @@ http {
         {{ v }};
 {% endfor %}
 
-{% if nginx_use_geoip_request_limit|bool and ansible_os_family == 'Debian' %}
-    # GeoIP2 Configuration
-        geoip2 /etc/nginx/geoip/GeoLite2-ASN.mmdb {
-            auto_reload 60m;
-            $geoip2_data_asn autonomous_system_number;
-            $geoip2_data_asn_org autonomous_system_organization;
-        }
-
-        geoip2 /etc/nginx/geoip/GeoLite2-City.mmdb {
-            auto_reload 60m;
-            $geoip2_data_country country iso_code;
-        }
-
-        # Define conditions for rate limiting
-        map $geoip2_data_country $limit_country {
-            default "";
-{%      for v in nginx_geoip_country_list %}
-            {{ v }} 1;
-{%      endfor %}
-        }
-
-        map $geoip2_data_asn $limit_asn {
-            default "";
-{%      for v in nginx_geoip_asn_list %}
-            {{ v }} 1;
-{%      endfor %}
-        }
-
-        # Combine conditions for rate limiting
-        map "$limit_country$limit_asn" $geoip_rate_limit {
-            default "";
-            ~.+ "geoip_zone"; # Static key for global rate limiting
-        }
+{% if nginx_use_geoip_request_limit|bool or nginx_use_bots_request_limit|bool or nginx_use_default_request_limit|bool %}
+        # Include rate-limits. Not using conf.d dir to avoid automatic load if it was enabled and disabled later (ansible role doesn't delete files)
+        include /etc/nginx/rate-limits/rate-limits.conf;
 {% endif %}
 
-{% if nginx_use_bots_request_limit|bool %}
-        map $http_user_agent $isbot_ua {
-        default 0;
-        # Regex from: https://observablehq.com/@hugodf/crawler-regex
-        # Needs to escape black spaces and split in several regex, it can help:
-        # Copy regex to file and run: cat regex  | sed 's/\ /\\\ /g' | sed -e 's/.\{300\}/&\n\n/g' > regex_fixed
-        # Curl and wget removed
-{%	for v in nginx_bots_request_limit_user_agents_regex %}
-        ~*{{ v }} 1;
-{%      endfor %}
-        }
-        map $isbot_ua $limit_bot {
-	   0       "";
-           # Use $http_x_forwarded_for instead of $binary_remote_addr when using reverse proxy
-{%      if nginx_bots_request_limit_use_x_forwarded_for|bool %}
-	   1       $http_x_forwarded_for;
-{%      else %}
-	   1       $binary_remote_addr;
-{%       endif %}
-        }
-{%      if nginx_use_geoip_request_limit|bool and ansible_os_family == 'Debian' %}
-        limit_req_zone $geoip_rate_limit zone=geoip_zone:{{ nginx_geoip_request_limit_rate_shared_memory_zone }} rate={{ nginx_geoip_request_limit_rate  }};
-        limit_req zone=geoip_zone burst={{ nginx_geoip_request_limit_burst }} nodelay;
-{%      endif %}
-	limit_req_zone $limit_bot zone=bots:{{ nginx_bots_request_limit_shared_memory_zone }} rate={{ nginx_bots_request_limit_rate }};
-	limit_req zone=bots burst={{ nginx_bots_request_limit_burst }} nodelay;
-{% endif %}
-{% if nginx_use_default_request_limit|bool %}
-{%      if nginx_default_request_limit_use_x_forwarded_for|bool %}
-        limit_req_zone $http_x_forwarded_for zone=one:{{ nginx_default_request_limit_shared_memory_zone }} rate={{ nginx_default_request_limit_rate  }};
-{%      else %}
-        limit_req_zone $binary_remote_addr zone=one:{{ nginx_default_request_limit_shared_memory_zone }} rate={{ nginx_default_request_limit_rate  }};
-{%      endif %}
-        limit_req zone=one burst={{ nginx_default_request_limit_burst }} nodelay;
-{% endif %}
-{% if nginx_use_bots_request_limit|bool or nginx_use_default_request_limit|bool %}
-        limit_req_status {{ nginx_request_limit_status }};
-{% endif %}
         include /etc/nginx/conf.d/*.conf;
         include /etc/nginx/sites-enabled/*;
 }
