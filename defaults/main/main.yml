@@ -98,3 +98,61 @@ nginx_geoip_request_limit_burst: 1
 #The following list have been defined in geoip-lists.yml files:
 # nginx_geoip_country_list
 # nginx_geoip_asn_list
+
+#rate limits exceptions
+#They are useful when having several sites in server and you want to add exceptions based on FQDN
+
+nginx_geoip_request_limit_country_host_exception_list: []
+#  - id: "example.com"
+#    exceptions:
+#      - host: "main.example.com"
+#        country: "CN"
+#        enable: True
+#      - host: "secondary.example.com"
+#        country: "ES"
+#        enable: False
+#  - id: "example2.com"
+#    exceptions:
+#      - host: "main.example2.com"
+#        country: "CN"
+#        enable: False
+#      - host: "secondary.example2.com"
+#        country: "ES"
+#        enable: True
+
+nginx_geoip_request_limit_asn_host_exception_list: []
+#  - id: "example.com"
+#    exceptions:
+#      - host: "main.example.com"
+#        asn: "1234"
+#        enable: True
+#      - host: "secondary.example.com"
+#        asn: "5678"
+#        enable: False
+#  - id: "example2.com"
+#    exceptions:
+#      - host: "main.example2.com"
+#        asn: "1111"
+#        enable: False
+#      - host: "secondary.example2.com"
+#        asn: "2222"
+#        enable: True
+
+nginx_bots_request_limit_user_agent_host_exception_list: []
+#  - id: "example.com"
+#    exceptions:
+#      - host: "main.example.com"        # If host="": it applies to all sites
+#        user_agent: "GoogleBot"
+#        enable: True
+#      - host: "secondary.example.com"   # If host="": it applies to all sites
+#        user_agent: "GoogleOther"
+#        enable: False
+#  - id: "example2.com"
+#    exceptions:
+#      - host: "main.example2.com"       # If host="": it applies to all sites
+#        user_agent: "GoogleBot"
+#        enable: False
+#      - host: "secondary.example2.com"  # If host="": it applies to all sites
+#        user_agent: "GoogleOther"
+#        enable: True
+
