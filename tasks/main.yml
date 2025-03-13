@@ -131,6 +131,11 @@
     - ansible_os_family == 'Debian'
   tags: [nginx-geoip,nginx]
 
+- import_tasks: "custom_files_from_template.yml"
+  when:
+    - "nginx_custom_files_from_templates|length>0"
+  tags: [configuration,nginx]
+
 - name: Check nginx syntax of configuration files
   shell: nginx -t
   register: result

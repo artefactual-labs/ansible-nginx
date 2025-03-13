@@ -188,3 +188,12 @@ nginx_bots_request_limit_user_agent_host_exception_list: []
 #        user_agent: "GoogleOther"
 #        enable: True   # enable=true means: Apply the bots rate limit to the User-Agent
 
+
+# Add custom files from templates:
+
+nginx_custom_files_from_templates: []
+#   - template_file: "templates/nginx/custom_template1.conf.j2"
+#     dest_file: "/etc/nginx/conf.d/custom_file1.conf"
+#   - template_file: "templates/nginx/custom_template2.conf.j2"
+#     dest_file: "/etc/nginx/conf.d/custom_file2.conf"
+
