@@ -2,8 +2,8 @@
 
 {% for exception in item.exceptions %}
 {%   if exception.enable|bool %}
-{{ exception.country }}{{ exception.host }} "";
+{{ exception.country }}-{{ exception.host }} {{ exception.country }};
 {%   else %}
-{{ exception.country }}{{ exception.host }} 1;
+{{ exception.country }}-{{ exception.host }} "";
 {%   endif %}
 {% endfor %}

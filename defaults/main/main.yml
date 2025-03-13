@@ -88,6 +88,20 @@ nginx_request_limit_status: 429
 # nginx_global_robots_txt
 # nginx_bots_deny_list
 
+
+nginx_use_high_rate_request_limit: False
+nginx_high_rate_request_limit_rate: "1000r/s"
+nginx_high_rate_request_limit_burst: 200
+nginx_high_rate_request_limit_shared_memory_zone: "50m"
+
+nginx_high_rate_request_limit_asn_list: []
+#  - 13335 # Cloudflare 
+
+nginx_high_rate_request_limit_net_list: []
+#  - 10.0.0.0/8
+#  - 1.2.0.0/16
+#  - 1.2.3.4
+
 #Note nginx_use_geoip_request_limit requires nginx_use_bots_request_limit=True
 #It only can be used in frontend servers because under a proxy it is going to take geoip from proxy
 nginx_use_geoip_request_limit: False
@@ -102,57 +116,75 @@ nginx_geoip_request_limit_burst: 1
 #rate limits exceptions
 #They are useful when having several sites in server and you want to add exceptions based on FQDN
 
-nginx_geoip_request_limit_country_host_exception_list: []
+nginx_high_rate_request_limit_asn_host_exception_list: []
 #  - id: "example.com"
 #    exceptions:
 #      - host: "main.example.com"
+#        asn: "1234"
+#        enable: True  # enable=true means: Apply high_rate limit to the asn
+#      - host: "secondary.example.com"
+#        asn: "456"
+#        enable: False # enable=false means: Don't apply high_rate limit to the asn
+#  - id: "example2.com"
+#    exceptions:
+#      - host: "main.example2.com"
+#        asn: "1234"
+#        enable: False # enable=false means: Don't apply high_rate limit to the asn
+#      - host: "secondary.example2.com"
+#        asn: "456"
+#        enable: True  # enable=true means: Apply high_rate limit to the asn
+
+nginx_geoip_request_limit_country_host_exception_list: []
+#  - id: "example.com"
+#    exceptions:
+#      - host: "main.example.com" 
 #        country: "CN"
-#        enable: True
+#        enable: True  # enable=true means: Apply geoip rate limit to the country
 #      - host: "secondary.example.com"
 #        country: "ES"
-#        enable: False
+#        enable: False # enable=false means: Don't apply geoip rate limit to the country
 #  - id: "example2.com"
 #    exceptions:
 #      - host: "main.example2.com"
 #        country: "CN"
-#        enable: False
+#        enable: False # enable=false means: Don't apply geoip rate limit to the country
 #      - host: "secondary.example2.com"
 #        country: "ES"
-#        enable: True
+#        enable: True  # enable=true means: Apply geoip rate limit to the country
 
 nginx_geoip_request_limit_asn_host_exception_list: []
 #  - id: "example.com"
 #    exceptions:
 #      - host: "main.example.com"
 #        asn: "1234"
-#        enable: True
+#        enable: True  # enable=true means: Apply geoip rate limit to the asn
 #      - host: "secondary.example.com"
 #        asn: "5678"
-#        enable: False
+#        enable: False # enable=false means: Don't apply geoip rate limit to the asn
 #  - id: "example2.com"
 #    exceptions:
 #      - host: "main.example2.com"
 #        asn: "1111"
-#        enable: False
+#        enable: False # enable=false means: Don't apply geoip rate limit to the asn
 #      - host: "secondary.example2.com"
 #        asn: "2222"
-#        enable: True
+#        enable: True # enable=true means: Apply geoip rate limit to the asn
 
 nginx_bots_request_limit_user_agent_host_exception_list: []
 #  - id: "example.com"
 #    exceptions:
 #      - host: "main.example.com"        # If host="": it applies to all sites
 #        user_agent: "GoogleBot"
-#        enable: True
+#        enable: True   # enable=true means: Apply the bots rate limit to the User-Agent
 #      - host: "secondary.example.com"   # If host="": it applies to all sites
 #        user_agent: "GoogleOther"
-#        enable: False
+#        enable: False  # enable=false means: Don't apply the bots rate limit to the User-Agent
 #  - id: "example2.com"
 #    exceptions:
 #      - host: "main.example2.com"       # If host="": it applies to all sites
 #        user_agent: "GoogleBot"
-#        enable: False
+#        enable: False  # enable=false means: Don't apply the bots rate limit to the User-Agent
 #      - host: "secondary.example2.com"  # If host="": it applies to all sites
 #        user_agent: "GoogleOther"
-#        enable: True
+#        enable: True   # enable=true means: Apply the bots rate limit to the User-Agent
 

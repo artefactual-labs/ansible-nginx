@@ -1,14 +1,13 @@
 #{{ ansible_managed }}
 
+{% if nginx_use_geoip_request_limit|bool or nginx_use_high_rate_request_limit %}
+
+###################################################################################
 #
-# Use nginx_use_geoip_request_limit
-# Depends on map_geoip.conf file
-# Define maps and configure rate limits based on geoip Countries and ASN
+# Define common geoip Countries and ASN. They are used by geoip and high rate limits
 #
 
-{% if nginx_use_geoip_request_limit|bool and ansible_os_family == 'Debian' %}
-
-# GeoIP2 Configuration
+# GeoIP2 common maps
 geoip2 /etc/nginx/geoip/GeoLite2-ASN.mmdb {
   auto_reload 60m;
   $geoip2_data_asn autonomous_system_number;
@@ -19,48 +18,171 @@ geoip2 /etc/nginx/geoip/GeoLite2-City.mmdb {
   auto_reload 60m;
   $geoip2_data_country country iso_code;
 }
+# End GeoIP2 common maps
+###################################################################################
+{% endif %}
 
+
+
+{% if nginx_use_high_rate_request_limit|bool %}
+###################################################################################
+#
+# High Rate Request Limit Configuration (GeoIP2 & ASN-based Rate Limiting)
+#
+# This configuration applies stricter request rate limits based on:
+# - **ASN (Autonomous System Number)**: Limits based on the ISP/network owner.
+# - **IP Networks**: Limits based on specific IP subnets (e.g., customer networks).
+# - **Host**: Limits applied per domain to prevent excessive traffic per site.
+#
+# The configuration dynamically maps ASN and IP networks to a rate limit key,
+# which is then used in the `limit_req_zone` directive.
+#
+# **Per-Host Exceptions:**
+# - Some domains may require different rate-limit rules based on ASN or IP.
+# - To allow flexibility, **per-host exceptions** are included using:
+#   ```
+#   include /etc/nginx/rate-limits/exceptions/high_rate_asn_host_exception_*.conf;
+#   ```
+# - These exception files allow specific hosts to **bypass or adjust** rate limits,
+#   ensuring critical services are not unnecessarily restricted.
+#
+
+# Define map for ASN with high rate-limit (cloudflare, customer ASN)
+map "$geoip2_data_asn-$host" $high_ratelimit_asn {
+  default "";
+  include /etc/nginx/rate-limits/exceptions/high_rate_asn_host_exception_*.conf;  # Load per-site high rate-limit ANS exception
+{%  for v in nginx_high_rate_request_limit_asn_list %}
+  ~^{{ v }}- {{ v }};
+{%  endfor %}
+}
+
+# Define geo for networks with high rate-limit (customer networks). Defined globaly, it is difficult to add exceptions per host
+geo $high_ratelimit_net {
+  default "";
+{%  for v in nginx_high_rate_request_limit_net_list %}
+  {{ v }} {{ v }};
+{%  endfor %}
+}
+
+# Combine $high_ratelimit maps (ASN and nets)
+map "$high_ratelimit_asn$high_ratelimit_net" $high_rate_limit {
+  default "";
+  ~.+ "$high_ratelimit_asn-$high_ratelimit_net-$host"; # static key for each $high_ratelimit_asn-$high_ratelimit_net-$host. Adding $host to ensure the limit applies by host
+}
+
+#This map directive dynamically generates a rate-limiting key by combining the
+#ASN ($high_ratelimit_asn), the network ($high_ratelimit_net), and the domain
+#($host), ensuring that rate limits are applied per ASN, per network, and per
+#host separately. The pattern ~.+ matches any non-empty combination, and the
+#resulting key (e.g., "12479-10.0.0.0/8-example.com") is used in limit_req_zone,
+#preventing a single ASN or network from consuming excessive resources across
+#different domains while allowing granular control over request limits.
+
+# High rate request limit
+limit_req_zone $high_rate_limit zone=high_rate_zone:{{ nginx_high_rate_request_limit_shared_memory_zone }} rate={{ nginx_high_rate_request_limit_rate }};
+limit_req zone=high_rate_zone burst={{ nginx_high_rate_request_limit_burst }} nodelay;
+
+#
+# End high rate request limit
+###################################################################################
+{% endif %}
+
+
+{% if nginx_use_geoip_request_limit|bool %}
+###################################################################################
+#
+# GeoIP & ASN-Based Request Rate Limiting Configuration
+#
+# This configuration applies request rate limits based on:
+# - **Country (GeoIP2 Data)**: Restricts request rates per country to mitigate high traffic from specific regions.
+# - **ASN (Autonomous System Number)**: Limits request rates based on the ISP or network provider to prevent abuse from specific networks.
+# - **Host (Domain-Specific Limits)**: Ensures that limits apply individually per domain, preventing one high-traffic site from affecting others.
+#
+# The configuration dynamically maps country and ASN values to a unique rate-limit key,
+# which is then used in the `limit_req_zone` directive to enforce request limits at a granular level.
+#
+# **Per-Host Exceptions:**
+# - Some domains may require different rate-limit rules based on country or ASN.
+# - To allow flexibility, **per-host exceptions** are included using:
+#   ```jinja
+#   include /etc/nginx/rate-limits/exceptions/geoip_country_host_exception_*.conf;
+#   include /etc/nginx/rate-limits/exceptions/geoip_asn_host_exception_*.conf;
+#   ```
+# - These exception files allow specific hosts to **bypass or adjust** rate limits,
+#   ensuring critical services are not unnecessarily restricted.
+#
 
 # Define conditions for rate limiting
-map $geoip2_data_country$host $limit_country {
+map "$geoip2_data_country-$host" $limit_country {
   default "";
   include /etc/nginx/rate-limits/exceptions/geoip_country_host_exception_*.conf; # Load per-site country exceptions
 {%   for v in nginx_geoip_country_list %}
-  {{ v }} 1;
+  ~^{{ v }}- {{ v }};
+
 {%   endfor %}
 }
 
-map $geoip2_data_asn$host $limit_asn {
+map "$geoip2_data_asn-$host" $limit_asn {
   default "";
   include /etc/nginx/rate-limits/exceptions/geoip_asn_host_exception_*.conf; # Load per-site ans exceptions
 {%   for v in nginx_geoip_asn_list %}
-  {{ v }} 1;
+  ~^{{ v }}- {{ v }};
 {%   endfor %}
 }
 
 # Combine conditions for rate limiting
 map "$limit_country$limit_asn" $geoip_rate_limit {
   default "";
-  ~.+ "geoip_zone"; # Static key for global rate limiting
+  ~.+ "$limit_country-$limit_asn-$host"; # Static key for each $limit_country-$limit_asn-$host. Adding $host to ensure the limit applies by host
 }
 
-# Rate limits
+#This map directive dynamically generates a rate-limiting key by combining the
+#country ($limit_country), ASN ($limit_asn), and domain ($host), ensuring that
+#request limits are applied per country, per ASN, and per host separately. The
+#~.+ pattern ensures that only non-empty values are assigned, and the resulting
+#key (e.g., "US-12479-example.com") is used in limit_req_zone, allowing precise
+#control over request rates based on geolocation and network ownership,
+#preventing excessive traffic from specific regions or ISPs while maintaining
+#per-host rate enforcement.
+
+
+# Geoip Rate limit
 limit_req_zone $geoip_rate_limit zone=geoip_zone:{{ nginx_geoip_request_limit_rate_shared_memory_zone }} rate={{ nginx_geoip_request_limit_rate  }};
 limit_req zone=geoip_zone burst={{ nginx_geoip_request_limit_burst }} nodelay;
-
-
-{% endif %}
-
 #
 # End nginx_use_geoip_request_limit
-#
-
-#
-# Use bots request limit
-# Define per-IP rate limiting for suspected bots based on User-Agent patterns.
-#
+###################################################################################
+{% endif %}
 
 {% if nginx_use_bots_request_limit|bool %}
+###################################################################################
+#
+# Bot Detection & Request Rate Limiting Configuration
+#
+# This configuration applies request rate limits specifically to suspected **bots and automated crawlers**
+# based on their **User-Agent headers** and applies **per-IP rate limiting**.
+#
+# The system works in multiple steps:
+# - **Step 1: Identify bots using User-Agent patterns**  
+#   - Uses a predefined list of bot-related User-Agent regex patterns.
+#   - Dynamically maps bot UAs to a flag (`$isbot_ua`).
+# - **Step 2: Assign rate limits per detected bot**  
+#   - If a request matches a bot User-Agent, it maps the **source IP** to a rate-limited key.
+# - **Step 3: Apply the rate limit per IP**  
+#   - The system restricts excessive requests from detected bots, ensuring fair usage.
+#
+# **Per-Host Exceptions:**  
+# - Some domains may require different bot-handling rules.  
+# - The configuration supports **per-host exceptions** via the inclusion of:
+#   ```
+#   include /etc/nginx/rate-limits/exceptions/bots_user_agent_host_exception_*.conf;
+#   ```
+# - These exception files allow specific domains to **bypass or adjust** rate limits,
+#   ensuring that critical services (e.g., API endpoints) are not unnecessarily restricted.
+#
+# The configuration dynamically generates a rate-limit key per detected bot and source IP,
+# which is then used in the `limit_req_zone` directive.
+#
 map "$http_user_agent$host" $isbot_ua {
   default "";
   include /etc/nginx/rate-limits/exceptions/bots_user_agent_host_exception_*.conf; # Load per-site bot exceptions
@@ -82,21 +204,31 @@ map $isbot_ua $limit_bot {
   ~.+     $binary_remote_addr;
 {%  endif %}
 }
+#This map dynamically assigns a rate-limit key based on the detected bot's IP
+#address, ensuring that requests from bots are throttled at the IP level. If
+#$isbot_ua = 1 (indicating a bot User-Agent match), the key is set to either
+#$http_x_forwarded_for (real client IP behind a reverse proxy) or
+#$binary_remote_addr (direct source IP) depending on whether the server is
+#behind a proxy. This ensures that bots are rate-limited per unique IP,
+#preventing excessive automated traffic while allowing legitimate users to
+#continue unaffected.
 
+
+# Bots rate-limit
 limit_req_zone $limit_bot zone=bots:{{ nginx_bots_request_limit_shared_memory_zone }} rate={{ nginx_bots_request_limit_rate }};
 limit_req zone=bots burst={{ nginx_bots_request_limit_burst }} nodelay;
 
-{% endif %}
-
 #
 # End bots request limit
-#
+###################################################################################
+{% endif %}
 
+
+{% if nginx_use_default_request_limit|bool %}
+###################################################################################
 #
 # Use default request limit
 #
-
-{% if nginx_use_default_request_limit|bool %}
 {%   if nginx_default_request_limit_use_x_forwarded_for|bool %}
 limit_req_zone $http_x_forwarded_for zone=one:{{ nginx_default_request_limit_shared_memory_zone }} rate={{ nginx_default_request_limit_rate  }};
 {%      else %}
@@ -105,11 +237,10 @@ limit_req_zone $binary_remote_addr zone=one:{{ nginx_default_request_limit_share
 limit_req zone=one burst={{ nginx_default_request_limit_burst }} nodelay;
 {% endif %}
 
-#
-# End use default request limit
-#
-
-# Set request limit status
+# Default rate-limit
 {% if nginx_use_geoip_request_limit|bool or nginx_use_bots_request_limit|bool or nginx_use_default_request_limit|bool %}
 limit_req_status {{ nginx_request_limit_status }};
+#
+# End default request limit
+###################################################################################
 {% endif %}
