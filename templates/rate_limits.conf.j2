@@ -93,6 +93,10 @@ limit_req zone=high_rate_zone burst={{ nginx_high_rate_request_limit_burst }} no
 #
 # GeoIP & ASN-Based Request Rate Limiting Configuration
 #
+# The purpose of this zone is to configure the minimum rate limit for unintended GeoIP origins.
+# To do this, a rate limit with a static key will be used to apply the rate limit to a single common origin, 
+# thus applying the minimum rate limit to all requests at once. 
+#
 # This configuration applies request rate limits based on:
 # - **Country (GeoIP2 Data)**: Restricts request rates per country to mitigate high traffic from specific regions.
 # - **ASN (Autonomous System Number)**: Limits request rates based on the ISP or network provider to prevent abuse from specific networks.
@@ -111,6 +115,7 @@ limit_req zone=high_rate_zone burst={{ nginx_high_rate_request_limit_burst }} no
 # - These exception files allow specific hosts to **bypass or adjust** rate limits,
 #   ensuring critical services are not unnecessarily restricted.
 #
+
 
 # Define conditions for rate limiting
 map "$geoip2_data_country-$host" $limit_country {
@@ -133,18 +138,12 @@ map "$geoip2_data_asn-$host" $limit_asn {
 # Combine conditions for rate limiting
 map "$limit_country$limit_asn" $geoip_rate_limit {
   default "";
-  ~.+ "$limit_country-$limit_asn-$host"; # Static key for each $limit_country-$limit_asn-$host. Adding $host to ensure the limit applies by host
+  ~.+ "geoip_minimum_rate_limit"; # Common static key for all the matches, this way the rate is applied globally.
 }
 
-#This map directive dynamically generates a rate-limiting key by combining the
-#country ($limit_country), ASN ($limit_asn), and domain ($host), ensuring that
-#request limits are applied per country, per ASN, and per host separately. The
-#~.+ pattern ensures that only non-empty values are assigned, and the resulting
-#key (e.g., "US-12479-example.com") is used in limit_req_zone, allowing precise
-#control over request rates based on geolocation and network ownership,
-#preventing excessive traffic from specific regions or ISPs while maintaining
-#per-host rate enforcement.
-
+# Here the `$geoip_rate_limit` key is not dynamic, it always has the `geoip_minimum_rate_limit` value. 
+# We want to use the minimum possible bandwidth applied to all matches at once.
+# We do not want the rate to be applied by ASN, ASN/Host, Country, Country/Host.
 
 # Geoip Rate limit
 limit_req_zone $geoip_rate_limit zone=geoip_zone:{{ nginx_geoip_request_limit_rate_shared_memory_zone }} rate={{ nginx_geoip_request_limit_rate  }};

@@ -1,0 +1,10 @@
+---
+# Please, ensure the destination directories exist before running the task
+- name: Create custom config files from templates
+  template:
+    src: "{{ item.template_file }}"
+    dest: "{{ item.dest_file }}"
+    owner: "root"
+    group: "{{ nginx_group }}"
+    mode: "0600"
+  loop: "{{ nginx_custom_files_from_templates }}"
