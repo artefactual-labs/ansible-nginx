@@ -22,6 +22,17 @@
   notify:
    - Reload nginx
 
+- name: Create high rate exceptions - based on asn/host
+  template:
+    src: "rate-limit-exceptions/high_rate_asn_host_exception.conf.j2"
+    dest: "/etc/nginx/rate-limits/exceptions/high_rate_asn_host_exception_{{ item.id }}.conf"
+  loop: "{{ nginx_high_rate_request_limit_asn_host_exception_list }}"
+  when:
+    - "nginx_use_high_rate_request_limit|bool"
+    - "nginx_high_rate_request_limit_asn_host_exception_list|length > 0"
+  notify:
+   - Reload nginx
+
 - name: Create geoip rate exceptions - based on country/host
   template:
     src: "rate-limit-exceptions/geoip_country_host_exception.conf.j2"

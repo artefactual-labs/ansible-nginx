@@ -2,8 +2,8 @@
 
 {% for exception in item.exceptions %}
 {%   if exception.enable|bool %}
-~.*{{ exception.user_agent }}.*{{ exception.host }} "";
-{%   else %}
 ~.*{{ exception.user_agent }}.*{{ exception.host }} 1;
+{%   else %}
+~.*{{ exception.user_agent }}.*{{ exception.host }} "";
 {%   endif %}
 {% endfor %}
