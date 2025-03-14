@@ -1,8 +1,12 @@
 #{{ ansible_managed }}
 
-{% if nginx_use_geoip_request_limit|bool and ansible_os_family == 'Debian' %}
+{% if nginx_use_geoip_module|bool and ansible_os_family == 'Debian' %}
 # Ensure ngx_http_geoip2_module.so is loaded. It is a dynamic module, so it must be included here
 load_module modules/ngx_http_geoip2_module.so;
+{% endif %}
+{% if nginx_use_geoip_module|bool and ansible_os_family == 'RedHat' %}
+# Ensure ngx_http_geoip2_module.so is loaded. It is a dynamic module, so it must be included here
+load_module /usr/lib64/nginx/modules/ngx_http_geoip2_module.so;
 {% endif %}
 
 user              {{ nginx_user }};

@@ -90,7 +90,7 @@ nginx_request_limit_status: 429
 # nginx_bots_deny_list_extra
 
 
-nginx_use_high_rate_request_limit: False
+nginx_use_high_rate_request_limit: False # Requires nginx_use_geoip_module=True
 nginx_high_rate_request_limit_rate: "1000r/s"
 nginx_high_rate_request_limit_burst: 200
 nginx_high_rate_request_limit_shared_memory_zone: "50m"
@@ -105,10 +105,15 @@ nginx_high_rate_request_limit_net_list: []
 
 #Note nginx_use_geoip_request_limit requires nginx_use_bots_request_limit=True
 #It only can be used in frontend servers because under a proxy it is going to take geoip from proxy
-nginx_use_geoip_request_limit: False
+nginx_use_geoip_module: False
+nginx_use_geoip_request_limit: False # Requires nginx_use_geoip_module=True
 nginx_geoip_request_limit_rate: "1r/m"
 nginx_geoip_request_limit_rate_shared_memory_zone: "10m"
 nginx_geoip_request_limit_burst: 1
+
+# rpm key and URL for nginx geoip module (it has been created in am-packbuild: https://github.com/artefactual-labs/am-packbuild)
+nginx_geoip_rpm_key: "https://packages.archivematica.org/GPG-KEY-archivematica-sha512"
+nginx_geoip_rpm_url: "https://packages.archivematica.org/nginx/nginx-mod-geoip2-1.20.1-20.el9.0.1.el9.x86_64.rpm"
 
 #The following list have been defined in geoip-lists.yml files:
 # nginx_geoip_country_list

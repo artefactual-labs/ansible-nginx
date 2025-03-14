@@ -1,8 +1,24 @@
 ---
-- name: "geoip: Install nginx packages for geoip support"
+- name: "geoip: Install nginx packages for geoip support (Ubuntu)"
   package:
     name: "{{ geoip_extra_pkg }}"
     state: "present"
+  when:
+    - ansible_os_family == 'Debian'
+
+- name: "geoip: Add nginx geoip rpm package key (RedHat)"
+  rpm_key:
+    state: present
+    key: "{{ nginx_geoip_rpm_key }}"
+  when: ansible_os_family == 'RedHat'
+
+- name: "geoip: Install nginx packages for geoip support (RedHat)"
+  yum:
+    name: "{{ nginx_geoip_rpm_url }}"
+    state: "present"
+  when:
+    - ansible_os_family == 'RedHat'
+
 
 - name: "geoip: Add script to update geoip databases"
   template:
