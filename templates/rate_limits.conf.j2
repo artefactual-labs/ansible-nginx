@@ -88,7 +88,16 @@ limit_req zone=high_rate_zone burst={{ nginx_high_rate_request_limit_burst }} no
 {% endif %}
 
 
-{% if nginx_use_geoip_request_limit|bool %}
+
+{% if nginx_use_geoip_request_limit|bool
+   and (
+      (nginx_geoip_country_list is defined and nginx_geoip_country_list | length > 0)
+      or (nginx_geoip_asn_list is defined and nginx_geoip_asn_list | length > 0)
+      or (nginx_geoip_request_limit_country_host_exception_list is defined and nginx_geoip_request_limit_country_host_exception_list | length > 0)
+      or (nginx_geoip_request_limit_asn_host_exception_list is defined and nginx_geoip_request_limit_asn_host_exception_list | length > 0)
+   )
+%}
+# ^ Matches when nginx_use_geoip_request_limit|bool and any of the nginx_geoip_* lists is length > 0
 ###################################################################################
 #
 # GeoIP & ASN-Based Request Rate Limiting Configuration
@@ -234,12 +243,13 @@ limit_req_zone $http_x_forwarded_for zone=one:{{ nginx_default_request_limit_sha
 limit_req_zone $binary_remote_addr zone=one:{{ nginx_default_request_limit_shared_memory_zone }} rate={{ nginx_default_request_limit_rate  }};
 {%      endif %}
 limit_req zone=one burst={{ nginx_default_request_limit_burst }} nodelay;
-{% endif %}
 
-# Default rate-limit
-{% if nginx_use_geoip_request_limit|bool or nginx_use_bots_request_limit|bool or nginx_use_default_request_limit|bool %}
-limit_req_status {{ nginx_request_limit_status }};
 #
 # End default request limit
 ###################################################################################
+{% endif %}
+
+{% if nginx_use_geoip_request_limit|bool or nginx_use_bots_request_limit|bool or nginx_use_default_request_limit|bool or nginx_use_high_rate_request_limit|bool %}
+# Define the rate-limit reached status code
+limit_req_status {{ nginx_request_limit_status }};
 {% endif %}
