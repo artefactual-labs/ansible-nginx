@@ -2,3 +2,6 @@
 {% for v in nginx_bots_deny_list %}
 if ($http_user_agent ~* "{{ v }}") { return {{ nginx_bots_deny_list_status }}; }
 {% endfor %}
+{% for v in nginx_bots_deny_list_extra %}
+if ($http_user_agent ~* "{{ v }}") { return {{ nginx_bots_deny_list_status }}; }
+{% endfor %}

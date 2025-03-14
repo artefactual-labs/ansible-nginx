@@ -69,6 +69,9 @@ nginx_bots_deny_list:
   - yandex         # https://yandex.com/support/webmaster/robot-workings/check-yandex-robots.html
   - ZoominfoBot
 
+# Use the following list to add more items to badbots file. It is useful in case you want to use always this list defined in this role,
+# that is updated with known badbots, and having a separate list to append to the `nginx_bots_deny_list` list.
+nginx_bots_deny_list_extra: []
 
 nginx_bots_request_limit_user_agents_regex:
   - (GoogleOther|Googlebot\/|Googlebot-Mobile|Googlebot-Image|Googlebot-News|Googlebot-Video|AdsBot-Google([^-]|$)|AdsBot-Google-Mobile|Feedfetcher-Google|Mediapartners-Google|Mediapartners\ \(Googlebot\)|APIs-Google|bingbot|Slurp|LinkedInBot|Python-urllib|libwww-perl|httpunit|nutch|Go-http-client)

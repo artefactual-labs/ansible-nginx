@@ -87,6 +87,7 @@ nginx_request_limit_status: 429
 # nginx_bots_request_limit_user_agents_regex
 # nginx_global_robots_txt
 # nginx_bots_deny_list
+# nginx_bots_deny_list_extra
 
 
 nginx_use_high_rate_request_limit: False
