@@ -21,7 +21,14 @@ events {
 
 
 http {
+{% if nginx_use_http_real_ip|bool and nginx_http_real_ip_from_list|length>0 %}
+{%   for v in nginx_http_real_ip_from_list %}
+        set_real_ip_from {{ v }};
 
+{%   endfor %}
+        real_ip_header {{ nginx_http_real_ip_header }};
+        real_ip_recursive {{ nginx_http_real_ip_recursive }};
+{% endif %}
         include /etc/nginx/mime.types;
         default_type application/octet-stream;
 {% for v in nginx_http_params %}

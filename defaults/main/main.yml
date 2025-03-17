@@ -55,6 +55,15 @@ nginx_configs: {}
 
 nginx_auth_basic_files: {}
 
+nginx_use_http_real_ip: False
+nginx_http_real_ip_recursive: "on" # Use "on|off". See: https://nginx.org/en/docs/http/ngx_http_realip_module.html
+nginx_http_real_ip_header: "X-Forwarded-For" # For CloudFlare you can use CF-Connecting-IP. See: https://nginx.org/en/docs/http/ngx_http_realip_module.html
+nginx_http_real_ip_from_list: []
+#  - 1.2.3.4
+#  - 5.6.7.0/24
+#  - 173.245.48.0/20 # Cloudflare
+#  - 103.21.244.0/22 # Cloudflare
+
 install_rpm_repositories: "true"
 
 #
