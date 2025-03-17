@@ -125,15 +125,15 @@
     - "nginx_use_geoip_request_limit|bool or nginx_use_bots_request_limit|bool or nginx_use_default_request_limit|bool or nginx_use_high_rate_request_limit|bool"
   tags: [configuration,nginx,nginx-geoip,rate-limit]
 
-- import_tasks: "geoip.yml"
-  when:
-    - "nginx_use_geoip_module|bool"
-  tags: [nginx-geoip,nginx]
-
 - import_tasks: "custom_files_from_template.yml"
   when:
     - "nginx_custom_files_from_templates|length>0"
   tags: [configuration,nginx]
+
+- import_tasks: "geoip.yml"
+  when:
+    - "nginx_use_geoip_module|bool"
+  tags: [nginx-geoip,nginx]
 
 - name: Check nginx syntax of configuration files
   shell: nginx -t
