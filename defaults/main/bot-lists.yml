@@ -64,6 +64,7 @@ nginx_bots_deny_list:
   - semrush
   - SeekportBot
   - ShapBot
+  - Sogou
   - Timpibot
   - test-bot
   - thesis-research-bot
